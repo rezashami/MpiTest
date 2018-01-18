@@ -10,7 +10,7 @@ void fill_data(int * start, int size)
 	srand(time(NULL));
 	for (int i = 0; i < size; i++)
 	{
-		start[i] = rand();
+		start[i] = i;
 	}
 }
 
@@ -26,54 +26,38 @@ int main(int argc, char** argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 	/*Set value*/
 	pioneer = 1000;
+	int* buf;
+	int* sums;
+	int*  mybuf = new int[pioneer];
 	/*Master section*/
+	
+		/*Use for take produced random data*/
+	buf = new int[pioneer * world_size];
+	fill_data(buf, (pioneer * world_size));
+	sums = new int[world_size];
+	MPI_Barrier(MPI_COMM_WORLD);
+	MPI_Scatter(buf, pioneer, MPI_INT, mybuf, pioneer, MPI_INT, 0, MPI_COMM_WORLD);
+	int mysum = 0;
+	for (int i = 0; i < pioneer; i++)
+	{
+		mysum += mybuf[i];
+	}
+	cout << "Mysum is: " << mysum << " and my id is: " << myid << "\n";
+	MPI_Gather(&mysum, 1, MPI_INT,sums, 1, MPI_INT, 0,MPI_COMM_WORLD);
 	if (myid == 0)
 	{
-		/*Use for take produced random data*/
-		int* buf;
-		buf = new int[pioneer * world_size];
-		fill_data(buf, (pioneer * world_size));
-		int offset = 0;
-		/*start from one because self messaging force to use MPI_Isend() function. To avoid use this, start from one and zero proccess calculate separatly*/
-		for (int dest = 1; dest < world_size; dest++)
-		{
-			/*Use for partition data into ranks*/
-			offset += (pioneer);
-			/*Move pointer to other section of array that we want send to other proccesses*/
-			MPI_Send(buf + offset, pioneer, MPI_INT, dest, 0, MPI_COMM_WORLD);
-		}
 		int totalSum = 0;
-		for (int i = 0; i < pioneer; i++)
+		for (int i = 0; i < world_size; i++)
 		{
-			totalSum += buf[i];
-		}
-		cout << "Mysum is: " << totalSum << " and my id is: " << myid << "\n";
-		MPI_Status st;
-		/*Recieve and calculate the sum*/
-		for (int src = 1; src < world_size; src++)
-		{
-			int temp;
-			MPI_Recv(&temp, 1, MPI_INT, src, 0, MPI_COMM_WORLD, &st);
-			totalSum += temp;
+			totalSum += sums[i];
 		}
 		cout << "The sum is: " << totalSum << endl;
-		/*Free memory*/
-		delete[]buf;
 	}
-	else {
-		int* mybuf = new int[pioneer];
-		int mysum = 0;
-		MPI_Status st;
-		MPI_Recv(mybuf, pioneer, MPI_INT, 0, 0, MPI_COMM_WORLD, &st);
-		for (int i = 0; i < pioneer; i++)
-		{
-			mysum += mybuf[i];
-		}
-		cout << "Mysum is: " << mysum << " and my id is: " << myid << "\n";
-		MPI_Send(&mysum, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-		delete[] mybuf;
-	}
-	cout << "asacadca";
+
+	/*Free memory*/
+	delete[]buf;
+	delete[] mybuf;
+
 	MPI_Finalize();
 	return 0;
 }
