@@ -1,7 +1,8 @@
 #include <iostream>
 #include "mpi.h"
 #include <time.h>
-using  std::cout;
+#include <stdio.h>
+using std::cout;
 using std::endl;
 
 /*Fill array with random element*/
@@ -37,10 +38,10 @@ int main(int argc, char** argv)
 	pioneer = 1000;
 
 	/*Main buffer*/
-	int* buf =NULL;
+	int* buf = NULL;
 
 	/*All sums taje in this variable*/
-	int* sums=NULL;
+	int* sums = NULL;
 
 	/*Local buffer*/
 	int*  mybuf = new int[pioneer];
@@ -66,23 +67,22 @@ int main(int argc, char** argv)
 	{
 		mysum += mybuf[i];
 	}
-
 	cout << "Mysum is: " << mysum << " and my id is: " << myid << "\n";
+
 	/*Send together sums to zero proccess*/
-	MPI_Gather(&mysum, 1, MPI_INT,sums, 1, MPI_INT, 0,MPI_COMM_WORLD);
+	int global_sum;
+	MPI_Reduce(&mysum, &global_sum, 1, MPI_INT, MPI_SUM, 0,MPI_COMM_WORLD);
 
 	/*Compute all sums*/
 	if (myid == 0)
 	{
-		int totalSum = 0;
-		for (int i = 0; i < world_size; i++)
-			totalSum += sums[i];
-		cout << "The sum is: " << totalSum << endl;
+		cout << "The sum is: " << global_sum << endl;
 	}
 
 	/*Free memory*/
 	delete[]buf;
 	delete[] mybuf;
+
 	/*Finilize all proccesses*/
 	MPI_Finalize();
 	return 0;

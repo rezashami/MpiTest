@@ -15,6 +15,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Scatter and reduce.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="normal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
