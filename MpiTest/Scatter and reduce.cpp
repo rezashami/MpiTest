@@ -58,6 +58,10 @@ int main(int argc, char** argv)
 	/*A barrier for move together proccesses*/
 	MPI_Barrier(MPI_COMM_WORLD);
 
+
+	double t1, t2;
+	t1 = MPI_Wtime();
+	
 	/*Scatter main array to local arrays*/
 	MPI_Scatter(buf, pioneer, MPI_INT, mybuf, pioneer, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -78,6 +82,9 @@ int main(int argc, char** argv)
 	{
 		cout << "The sum is: " << global_sum << endl;
 	}
+
+	t2 = MPI_Wtime();
+	printf("Elapsed time is %f\n", t2 - t1);
 
 	/*Free memory*/
 	delete[]buf;

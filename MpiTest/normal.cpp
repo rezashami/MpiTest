@@ -33,6 +33,9 @@ int main(int argc, char** argv)
 	MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
+	double t1, t2;
+	
+
 	/*Set value*/
 	pioneer = 1000;
 
@@ -44,6 +47,8 @@ int main(int argc, char** argv)
 		buf = new int[pioneer * world_size];
 		fill_data(buf, (pioneer * world_size));
 		int offset = 0;
+
+		t1 = MPI_Wtime();
 
 		/*start from one because self messaging force to use MPI_Isend() function. To avoid use this, start from one and zero proccess calculate separatly*/
 		for (int dest = 1; dest < world_size; dest++)
@@ -83,6 +88,8 @@ int main(int argc, char** argv)
 		/*This variable keep local sum*/
 		int mysum = 0;
 
+		t1 = MPI_Wtime();
+
 		/*Recieve section*/
 		MPI_Status st;
 		MPI_Recv(mybuf, pioneer, MPI_INT, 0, 0, MPI_COMM_WORLD, &st);
@@ -100,6 +107,9 @@ int main(int argc, char** argv)
 		/*Free memory*/
 		delete[] mybuf;
 	}
+
+	t2 = MPI_Wtime();
+	printf("Elapsed time is %f\n", t2 - t1);
 	
 	/*Finalize section*/
 	MPI_Finalize();
